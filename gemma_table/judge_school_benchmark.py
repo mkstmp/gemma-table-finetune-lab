@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 import argparse
-import concurrent.futures
 import json
 import os
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
 from dataclasses import dataclass
 from pathlib import Path
@@ -142,6 +142,94 @@ class OpenAIJudge:
             for content in item.get("content", []):
                 if content.get("type") == "output_text" and content.get("text"):
                     return content["text"]
+        return ""
+
+
+class GeminiJudge:
+    def __init__(self, api_key: str, model: str) -> None:
+        self.api_key = api_key
+        self.model = model
+
+    def judge_pair(self, question: str, expected: list[str], base_answer: str, ft_answer: str) -> tuple[JudgeResult, JudgeResult]:
+        base_text = base_answer.strip() or "<NO_ANSWER>"
+        ft_text = ft_answer.strip() or "<NO_ANSWER>"
+        prompt = (
+            f"{JUDGE_PROMPT}\n\n"
+            f"Question: {question}\n"
+            f"Expected Answers: {', '.join(expected)}\n"
+            f"Base Candidate Answer:\n{base_text}\n\n"
+            f"Fine-Tuned Candidate Answer:\n{ft_text}"
+        )
+        payload = {
+            "contents": [
+                {
+                    "parts": [
+                        {"text": prompt},
+                    ]
+                }
+            ],
+            "generationConfig": {
+                "responseMimeType": "application/json",
+                "responseJsonSchema": JUDGE_SCHEMA,
+                "temperature": 0,
+                "maxOutputTokens": 512,
+            },
+        }
+        url = (
+            "https://generativelanguage.googleapis.com/v1beta/models/"
+            f"{urllib.parse.quote(self.model, safe='')}:generateContent?key={urllib.parse.quote(self.api_key, safe='')}"
+        )
+        request = urllib.request.Request(
+            url,
+            data=json.dumps(payload).encode("utf-8"),
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+
+        last_error: Exception | None = None
+        for attempt in range(8):
+            try:
+                with urllib.request.urlopen(request, timeout=120) as response:
+                    body = json.loads(response.read().decode("utf-8"))
+                text = self._extract_text(body)
+                parsed = json.loads(text)
+                base_verdict = parsed.get("base_verdict", "INCORRECT")
+                ft_verdict = parsed.get("ft_verdict", "INCORRECT")
+                if base_verdict not in {"CORRECT", "INCORRECT"}:
+                    base_verdict = "INCORRECT"
+                if ft_verdict not in {"CORRECT", "INCORRECT"}:
+                    ft_verdict = "INCORRECT"
+                return (
+                    JudgeResult(verdict=base_verdict, reason=parsed.get("base_reason", "") or "no reason returned"),
+                    JudgeResult(verdict=ft_verdict, reason=parsed.get("ft_reason", "") or "no reason returned"),
+                )
+            except urllib.error.HTTPError as exc:
+                last_error = exc
+                if exc.code in {429, 529}:
+                    retry_after = exc.headers.get("Retry-After") if exc.headers else None
+                    if retry_after and retry_after.isdigit():
+                        time.sleep(int(retry_after))
+                    else:
+                        time.sleep(min(60, 5 * (attempt + 1)))
+                    continue
+                time.sleep(1)
+            except Exception as exc:
+                last_error = exc
+                time.sleep(1)
+        error = f"judge_error: {last_error}"
+        return (
+            JudgeResult(verdict="INCORRECT", reason=error),
+            JudgeResult(verdict="INCORRECT", reason=error),
+        )
+
+    @staticmethod
+    def _extract_text(body: dict) -> str:
+        candidates = body.get("candidates", [])
+        for candidate in candidates:
+            content = candidate.get("content", {})
+            for part in content.get("parts", []):
+                if part.get("text"):
+                    return part["text"]
         return ""
 
 
@@ -291,29 +379,47 @@ def build_results(rows: list[dict[str, object]], judge_model: str) -> dict[str, 
     }
 
 
+def has_judge_error(row: dict[str, object]) -> bool:
+    return str(row.get("base_judge", {}).get("reason", "")).startswith("judge_error:") or str(
+        row.get("ft_judge", {}).get("reason", "")
+    ).startswith("judge_error:")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Use an external LLM judge to re-score the saved school benchmark outputs.")
     parser.add_argument("--input-json", default="research/kg_class1_benchmark_results.json")
     parser.add_argument("--output-json", default="research/kg_class1_benchmark_results_llm_judged.json")
     parser.add_argument("--output-report", default="research/kg_class1_benchmark_report_llm_judged.md")
-    parser.add_argument("--judge-model", default="gpt-5")
-    parser.add_argument("--max-workers", type=int, default=4)
+    parser.add_argument("--judge-provider", choices=["openai", "gemini"], default="gemini")
+    parser.add_argument("--judge-model", default="gemini-2.5-flash")
+    parser.add_argument("--max-workers", type=int, default=1)
+    parser.add_argument("--delay-seconds", type=float, default=2.0)
+    parser.add_argument("--resume", action="store_true")
     args = parser.parse_args()
 
-    api_key = os.getenv("OPENAI_API_KEY")
-    if not api_key:
-        raise RuntimeError("OPENAI_API_KEY is required")
+    if args.judge_provider == "openai":
+        api_key = os.getenv("OPENAI_API_KEY")
+        if not api_key:
+            raise RuntimeError("OPENAI_API_KEY is required")
+        judge = OpenAIJudge(api_key=api_key, model=args.judge_model)
+    else:
+        api_key = os.getenv("GEMINI_API_KEY")
+        if not api_key:
+            raise RuntimeError("GEMINI_API_KEY is required")
+        judge = GeminiJudge(api_key=api_key, model=args.judge_model)
 
     source = json.loads(Path(args.input_json).read_text(encoding="utf-8"))
-    judge = OpenAIJudge(api_key=api_key, model=args.judge_model)
 
     rows: list[dict[str, object] | None] = [None] * len(source["rows"])
     total_rows = len(source["rows"])
     output_json = Path(args.output_json)
     output_report = Path(args.output_report)
+    existing_by_qid: dict[str, dict[str, object]] = {}
+    if args.resume and output_json.exists():
+        existing = json.loads(output_json.read_text(encoding="utf-8"))
+        existing_by_qid = {row["qid"]: row for row in existing.get("rows", []) if "qid" in row}
 
-    def judge_one(index_and_row: tuple[int, dict[str, object]]) -> tuple[int, dict[str, object]]:
-        index, row = index_and_row
+    def judge_one(index: int, row: dict[str, object]) -> tuple[int, dict[str, object]]:
         base_judge, ft_judge = judge.judge_pair(row["question"], row["expected"], row["base_output"], row["ft_output"])
         base_ok = base_judge.verdict == "CORRECT"
         ft_ok = ft_judge.verdict == "CORRECT"
@@ -327,20 +433,27 @@ def main() -> None:
         return index, updated
 
     completed = 0
-    with concurrent.futures.ThreadPoolExecutor(max_workers=max(1, args.max_workers)) as executor:
-        futures = [executor.submit(judge_one, item) for item in enumerate(source["rows"])]
-        for future in concurrent.futures.as_completed(futures):
-            index, updated = future.result()
-            rows[index] = updated
+    for index, row in enumerate(source["rows"]):
+        existing_row = existing_by_qid.get(row["qid"])
+        if existing_row and not has_judge_error(existing_row):
+            rows[index] = existing_row
             completed += 1
-            committed_rows = [row for row in rows if row is not None]
-            results = build_results(committed_rows, args.judge_model)
-            output_json.write_text(json.dumps(results, indent=2, ensure_ascii=True), encoding="utf-8")
-            build_report(results, output_report)
-            print(
-                f"[{completed}/{total_rows}] judged {updated['qid']} base={updated['base_judge']['verdict']} ft={updated['ft_judge']['verdict']}",
-                flush=True,
-            )
+            print(f"[{completed}/{total_rows}] kept {row['qid']} base={existing_row['base_judge']['verdict']} ft={existing_row['ft_judge']['verdict']}", flush=True)
+            continue
+
+        index, updated = judge_one(index, row)
+        rows[index] = updated
+        completed += 1
+        committed_rows = [committed for committed in rows if committed is not None]
+        results = build_results(committed_rows, args.judge_model)
+        output_json.write_text(json.dumps(results, indent=2, ensure_ascii=True), encoding="utf-8")
+        build_report(results, output_report)
+        print(
+            f"[{completed}/{total_rows}] judged {updated['qid']} base={updated['base_judge']['verdict']} ft={updated['ft_judge']['verdict']}",
+            flush=True,
+        )
+        if args.delay_seconds > 0:
+            time.sleep(args.delay_seconds)
 
 
 if __name__ == "__main__":
