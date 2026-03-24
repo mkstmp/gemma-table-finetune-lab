@@ -1,0 +1,22 @@
+name: search_local_knowledge
+version: "1.0"
+description: Handle web/news/local search.
+priority: high
+intent_category: search
+use_when: [fresh facts latest news nearby places]
+required_entities: []
+optional_entities: [query, location, freshness, place_type]
+detection:
+  lexical_hints: [latest, news, nearby, near me, restaurant, who is, what is]
+  semantic_examples: ["Latest OpenAI news"]
+  entity_hints: {location: optional, freshness: optional}
+  strong_patterns: ["<place_type> near me"]
+tools:
+  primary: [web_search, news_search, local_search, get_business_details]
+  secondary: []
+validation: [if local search and no location use default]
+confirmation:
+  default: none
+response_style: [answer directly first]
+examples: []
+non_examples: []

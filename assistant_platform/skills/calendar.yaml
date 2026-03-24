@@ -1,0 +1,23 @@
+name: calendar
+version: "1.0"
+description: Handle calendar lookup and modifications.
+priority: high
+intent_category: productivity
+use_when: [calendar or meeting requests]
+required_entities: []
+optional_entities: [title, start, end, attendees, location]
+detection:
+  lexical_hints: [calendar, meeting, event, schedule, available]
+  semantic_examples: ["What's on my calendar tomorrow?"]
+  entity_hints: {datetime_range: optional}
+  strong_patterns: ["add <event> on <date>"]
+tools:
+  primary: [search_calendar, create_calendar_event, update_calendar_event, delete_calendar_event]
+  secondary: []
+validation: [event creation requires title start end]
+confirmation:
+  default: implicit
+  conditions: [delete requires explicit confirmation]
+response_style: [summarize event time clearly]
+examples: []
+non_examples: []

@@ -1,0 +1,22 @@
+name: memory_profile
+version: "1.0"
+description: Handle user preferences and memory with consent.
+priority: medium
+intent_category: memory
+use_when: [remember preference requests]
+required_entities: []
+optional_entities: [key, value, query]
+detection:
+  lexical_hints: [remember that, preference, from now on, what do you remember]
+  semantic_examples: ["Remember that I prefer Celsius"]
+  entity_hints: {memory_key: optional}
+  strong_patterns: ["remember that <fact>"]
+tools:
+  primary: [get_user_profile, update_user_profile, store_memory, retrieve_memory]
+  secondary: []
+validation: [store only allowed fields]
+confirmation:
+  default: explicit
+response_style: [be transparent what is stored]
+examples: []
+non_examples: []

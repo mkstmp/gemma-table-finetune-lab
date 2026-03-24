@@ -1,0 +1,34 @@
+name: time_date
+version: "1.0"
+description: Handle current time/date and timezone conversion.
+priority: high
+intent_category: utility
+answer_directly_when:
+  - user asks simple date fact
+use_when:
+  - user asks current time/date
+  - user asks timezone conversion
+required_entities: []
+optional_entities: [location, timezone, datetime, target_timezone]
+detection:
+  lexical_hints: [time, date, day, tomorrow, yesterday, timezone, convert]
+  semantic_examples:
+    - What time is it in Tokyo?
+    - Convert 3 PM PST to IST
+  entity_hints:
+    location: optional
+    timezone: optional
+    datetime: optional
+  strong_patterns:
+    - what time is it in <location>
+tools:
+  primary: [get_current_time, convert_time, get_date_info]
+  secondary: []
+validation:
+  - collect source and target timezone for conversion
+confirmation:
+  default: none
+response_style:
+  - be concise
+examples: []
+non_examples: []

@@ -1,0 +1,22 @@
+name: media
+version: "1.0"
+description: Handle media search and playback control.
+priority: high
+intent_category: entertainment
+use_when: [playback requests]
+required_entities: []
+optional_entities: [query, media_type, provider, device]
+detection:
+  lexical_hints: [play, pause, resume, next, skip, volume]
+  semantic_examples: ["Play Hanuman Chalisa"]
+  entity_hints: {media_title: optional}
+  strong_patterns: ["play <query>"]
+tools:
+  primary: [search_media, play_media, pause_media, resume_media, skip_media, set_volume]
+  secondary: []
+validation: [if ambiguous search results ask user]
+confirmation:
+  default: none
+response_style: [confirm what is playing]
+examples: []
+non_examples: []

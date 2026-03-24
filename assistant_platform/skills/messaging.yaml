@@ -1,0 +1,22 @@
+name: messaging
+version: "1.0"
+description: Handle contacts lookup SMS email calling.
+priority: high
+intent_category: communication
+use_when: [text call email requests]
+required_entities: []
+optional_entities: [contact_name, phone_number, email, message, subject]
+detection:
+  lexical_hints: [text, message, call, email, send]
+  semantic_examples: ["Text Mukesh I'm late"]
+  entity_hints: {contact: optional, message: optional}
+  strong_patterns: ["text <contact> <message>"]
+tools:
+  primary: [search_contacts, send_sms, send_email, make_call]
+  secondary: []
+validation: [if contact resolves multiple, ask which]
+confirmation:
+  default: explicit
+response_style: [preview before sending]
+examples: []
+non_examples: []

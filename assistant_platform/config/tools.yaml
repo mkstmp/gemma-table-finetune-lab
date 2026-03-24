@@ -1,0 +1,21 @@
+tools:
+  send_sms:
+    risk_level: medium
+    confirmation_mode: explicit
+    idempotent: false
+    timeout_seconds: 10
+  send_email:
+    risk_level: high
+    confirmation_mode: explicit
+    idempotent: false
+    timeout_seconds: 20
+  control_device:
+    risk_level: medium
+    confirmation_mode: explicit
+    idempotent: false
+    timeout_seconds: 10
+  currency_convert:
+    risk_level: low
+    confirmation_mode: none
+    idempotent: true
+    timeout_seconds: 5

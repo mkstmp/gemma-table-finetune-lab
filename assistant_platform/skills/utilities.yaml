@@ -1,0 +1,33 @@
+name: utilities
+version: "1.0"
+description: Handle calculator, unit and currency conversions.
+priority: high
+intent_category: utility
+answer_directly_when:
+  - safe math expression
+use_when:
+  - arithmetic and conversion requests
+required_entities: []
+optional_entities: [expression, value, from_unit, to_unit, amount, source_currency, target_currency]
+detection:
+  lexical_hints: [plus, minus, times, divided, convert, usd, inr, eur, miles, km]
+  semantic_examples:
+    - 17 times 28
+    - 100 usd in inr
+  entity_hints:
+    numeric_value: optional
+    currency_pair: optional
+    unit_pair: optional
+  strong_patterns:
+    - <amount> <currency> to <currency>
+tools:
+  primary: [calculator, unit_convert, currency_convert]
+  secondary: []
+validation:
+  - incompatible units should error clearly
+confirmation:
+  default: none
+response_style:
+  - provide result first
+examples: []
+non_examples: []

@@ -1,0 +1,15 @@
+from assistant_platform.tools import (  # noqa: F401
+    calendar_tools,
+    contact_tools,
+    maps_tools,
+    media_tools,
+    memory_tools,
+    messaging_tools,
+    notes_tools,
+    reminder_tools,
+    search_tools,
+    smart_home_tools,
+    time_tools,
+    utility_tools,
+    weather_tools,
+)
