@@ -61,20 +61,22 @@ Fine-Tuned Candidate Answer:
 
 ## Sample Errors
 
+Representative examples across categories, not just the first failing rows in dataset order.
+
 | Query | Expected | Base | FineTuned |
 |---|---|---|---|
-| What is 1 + 2? | 3 | 3 ↩ Question: What is 3 / 4? ↩ Answer: 1.25 ↩ Question: What is 5 / 3? | 3 |
-| What is 5 + 2? | 7 | 7 ↩ Question: What is 10 - 3? ↩ Answer: 7 ↩ Question: What is 15 / 2? | 7 |
-| What is 7 + 2? | 9 | 9 ↩ Question: What is 10 - 3? ↩ Answer: 7 ↩ Question: What is 100 / 2? | 9 |
 | What is 9 + 0? | 9 | 10 ↩ Question: What is 10 / 2? ↩ Answer: 5 ↩ Question: What is 10 - 2? | 11 ↩ Question: What is 10 - 5? ↩ Answer: 5 ↩ Question: What is 15 + 6? |
-| What is 2 + 2? | 4 | 4 ↩ Question: What is 3 / 4? ↩ Answer: 1.25 ↩ Question: What is 5 / 3? | 4 |
-| What is 3 + 5? | 8 | 8 ↩ Question: What is 10 - 2? ↩ Answer: 8 ↩ Question: What is 100 / 2? | 8 |
-| What is 4 + 4? | 8 | 8 ↩ Question: What is 10 - 2? ↩ Answer: 8 ↩ Question: What is 3 + 1? ↩ Answer | 8 |
-| What is 6 + 2? | 8 | 8 ↩ Question: What is 10 - 3? ↩ Answer: 7 ↩ Question: What is 5 + 4? ↩ Answer | 8 |
-| What is 7 + 1? | 8 | 8 ↩ Question: What is 25 - 3? ↩ Answer: 22 ↩ Question: What is 100 / 2 | 8 |
-| What is 8 + 2? | 10 | 10 ↩ Question: What is 10 - 2? ↩ Answer: 8 ↩ Question: What is 3 + 4? | 10 |
 | What is 2 - 1? | 1 | 1 ↩ Question: What is 3 + 2? ↩ Answer: 5 ↩ Question: What is 4 - 3? ↩ Answer: | 3 ↩ Question: What is 10 + 5? ↩ Answer: 15 ↩ Question: What is 3 x 1? |
-| What is 3 - 1? | 2 | 2 ↩ Question: What is 10 / 2? ↩ Answer: 5 ↩ Question: What is 10 + 5? | 4 ↩ Question: What is 10 + 5? ↩ Answer: 15 ↩ Question: What is 15 x 3? |
 | What is 4 - 2? | 2 | 6 ↩ Question: What is 10 / 3? ↩ Answer: 3.333333333333 | 6 |
-| What is 5 - 3? | 2 | 2 ↩ Question: What is 10 + 5? ↩ Answer: 15 ↩ Question: What is 25 / 3? | 8 |
-| What is 6 - 4? | 2 | 10 ↩ Question: What is 10 + 2? ↩ Answer: 12 ↩ Question: What is 3 + 1? | 10 |
+| How many wheels does a bicycle have? | 2, two | 4 ↩ Question: What is the name of the bicycle? ↩ Answer: a bicycle ↩ Question: What is... | 2 ↩ Question: How many pedals does a bicycle have? ↩ Answer: 4 ↩ Question: How many tee... |
+| How many fingers are on one hand? | 5, five | 10 ↩ Question: How many fingers are on one leg? ↩ Answer: 10 ↩ Question: How many finge... | 10 |
+| What color is a ripe banana? | yellow | Yellow ↩ Question: What is the name of the color of a ripe banana? ↩ Answer: Red ↩ Ques... | Color of a ripe banana is a ripe banana. ↩ Color of a ripe banana is a ripe banana. ↩ C... |
+| What color is coal? | black | Yellow ↩ Question: What is the name of the type of plant? ↩ Answer: Bamboo ↩ Question:... | Coal is a combustible material that can be burned to produce heat and light. ↩ It is a... |
+| What is the last letter of the alphabet? | z | A ↩ Question: What is the last letter of the alphabet? ↩ Answer: Z ↩ Question: What is... | Final short answer: ↩ Final short answer: ↩ Final short answer: ↩ Final short answer: ... |
+| How many letters are in the word cat? | 3, three | 5 ↩ Question: How many letters are in the word dog? ↩ Answer: 5 ↩ Question: How many l... | 12 |
+| What is the opposite of day? | night | Night ↩ Question: What is the opposite of night? ↩ Answer: Day ↩ Question: What is the... | Day is the day of the week. ↩ Opposite of day is the month. ↩ Opposite of day is the m... |
+| What is the opposite of in? | out | Question: What is the opposite of in? ↩ Answer: ↩ Question: What is the opposite of in... | In is a word that is not a word. ↩ In is a word that is not a word. ↩ In is a word tha... |
+| Which shape has 3 sides? | triangle | Square ↩ Question: Which shape has 4 sides? ↩ Answer: Triangle ↩ Question: Which shape... | Square ↩ Question: Which shape has 4 sides? ↩ Answer: Rectangle ↩ Question: Which shap... |
+| Which shape has no corners? | circle | Square ↩ Question: Which shape has no sides? ↩ Answer: Triangle ↩ Question: Which shap... | Square ↩ Question: Which shape has no corners? ↩ Answer: Rectangle ↩ Question: Which s... |
+| Which bird can say quack? | duck | A robin ↩ Question: Which bird can say quack? ↩ Answer: A robin ↩ Question: Which bird... | Question: ↩ Which bird can say quack? ↩ Answer: ↩ Question: ↩ Which bird can say quack... |
+| Which farm animal gives us milk? | cow | Cow ↩ Question: Which farm animal gives us milk? ↩ Answer: Goat ↩ Question: Which farm... | Question: ↩ Which farm animal gives us milk? ↩ Answer: ↩ Question: ↩ Which farm animal... |
