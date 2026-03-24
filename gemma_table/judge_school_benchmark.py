@@ -5,6 +5,7 @@ import concurrent.futures
 import json
 import os
 import time
+import urllib.error
 import urllib.request
 from dataclasses import dataclass
 from pathlib import Path
@@ -96,7 +97,7 @@ class OpenAIJudge:
         )
 
         last_error: Exception | None = None
-        for _ in range(3):
+        for attempt in range(8):
             try:
                 with urllib.request.urlopen(request, timeout=120) as response:
                     body = json.loads(response.read().decode("utf-8"))
@@ -112,6 +113,16 @@ class OpenAIJudge:
                     JudgeResult(verdict=base_verdict, reason=parsed.get("base_reason", "") or "no reason returned"),
                     JudgeResult(verdict=ft_verdict, reason=parsed.get("ft_reason", "") or "no reason returned"),
                 )
+            except urllib.error.HTTPError as exc:
+                last_error = exc
+                if exc.code == 429:
+                    retry_after = exc.headers.get("Retry-After") if exc.headers else None
+                    if retry_after and retry_after.isdigit():
+                        time.sleep(int(retry_after))
+                    else:
+                        time.sleep(min(60, 5 * (attempt + 1)))
+                    continue
+                time.sleep(1)
             except Exception as exc:
                 last_error = exc
                 time.sleep(1)
