@@ -207,19 +207,36 @@ def build_report(results: dict[str, object], output_path: Path) -> None:
             "",
             "## Observations",
             "",
-            results["observations"][0],
-            results["observations"][1],
-            results["observations"][2],
+            f"- {results['observations'][0]}",
+            f"- {results['observations'][1]}",
+            f"- {results['observations'][2]}",
             "",
             "## Sample Mistakes",
             "",
-            "| Question | Expected | Base Output | Fine-Tuned Output |",
-            "|---|---|---|---|",
         ]
     )
-    for row in results["sample_errors"]:
+    for idx, row in enumerate(results["sample_errors"], start=1):
         lines.append(
-            f"| {row['question']} | {', '.join(row['expected'])} | {row['base_output'].replace('|', '/')} | {row['ft_output'].replace('|', '/')} |"
+            f"### Mistake {idx}: {row['question']}"
+        )
+        lines.extend(
+            [
+                "",
+                f"- Expected: `{', '.join(row['expected'])}`",
+                "",
+                "**Base Output**",
+                "",
+                "```text",
+                row["base_output"],
+                "```",
+                "",
+                "**Fine-Tuned Output**",
+                "",
+                "```text",
+                row["ft_output"],
+                "```",
+                "",
+            ]
         )
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
