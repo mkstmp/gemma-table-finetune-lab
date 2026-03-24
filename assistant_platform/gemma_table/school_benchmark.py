@@ -173,6 +173,12 @@ class ModelRunner:
 
 
 def build_report(results: dict[str, object], output_path: Path) -> None:
+    def preview(text: str, limit: int = 90) -> str:
+        single_line = text.replace("\n", " ↩ ").replace("|", "/").strip()
+        if len(single_line) <= limit:
+            return single_line
+        return single_line[: limit - 3].rstrip() + "..."
+
     lines = [
         "# Classroom Check: Gemma 270M vs Fine-Tuned Table Adapter on 100 KG & Class 1 Questions",
         "",
@@ -213,30 +219,13 @@ def build_report(results: dict[str, object], output_path: Path) -> None:
             "",
             "## Sample Mistakes",
             "",
+            "| Query | Expected | Base | FineTuned |",
+            "|---|---|---|---|",
         ]
     )
-    for idx, row in enumerate(results["sample_errors"], start=1):
+    for row in results["sample_errors"]:
         lines.append(
-            f"### Mistake {idx}: {row['question']}"
-        )
-        lines.extend(
-            [
-                "",
-                f"- Expected: `{', '.join(row['expected'])}`",
-                "",
-                "**Base Output**",
-                "",
-                "```text",
-                row["base_output"],
-                "```",
-                "",
-                "**Fine-Tuned Output**",
-                "",
-                "```text",
-                row["ft_output"],
-                "```",
-                "",
-            ]
+            f"| {row['question']} | {', '.join(row['expected'])} | {preview(row['base_output'])} | {preview(row['ft_output'])} |"
         )
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
