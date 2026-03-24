@@ -1,6 +1,0 @@
-app:
-  name: assistant_platform
-  environment: development
-  locale: en-US
-  timezone: America/Los_Angeles
-  max_turn_context: 20

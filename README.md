@@ -11,8 +11,8 @@ This workspace contains:
 
 ## Main paths
 
-- App UI/API: `assistant_platform/api`
-- Gemma workflow code: `assistant_platform/gemma_table`
+- App entrypoint: `app.py`
+- Gemma workflow code: `gemma_table`
 - Research outputs: `research`
 
 ## Run locally
@@ -23,8 +23,8 @@ This workspace contains:
 cd /Users/mukesh/assistant2
 python3 -m venv .venv
 source .venv/bin/activate
-pip install -e ./assistant_platform
-uvicorn assistant_platform.api.app:app --reload
+pip install fastapi uvicorn pydantic pyyaml python-dateutil
+uvicorn app:app --reload
 ```
 
 Open:
@@ -51,7 +51,7 @@ export HF_TOKEN=...
 
 ```bash
 cd /Users/mukesh/assistant2
-HF_TOKEN=... .venv-gemma/bin/python -m assistant_platform.gemma_table.train \
+HF_TOKEN=... .venv-gemma/bin/python -m gemma_table.train \
   --workspace-root . \
   --num-train-epochs 1 \
   --per-device-train-batch-size 1 \
@@ -65,13 +65,13 @@ HF_TOKEN=... .venv-gemma/bin/python -m assistant_platform.gemma_table.train \
 ### Table benchmark
 
 ```bash
-HF_TOKEN=... .venv-gemma/bin/python -m assistant_platform.gemma_table.table_benchmark
+HF_TOKEN=... .venv-gemma/bin/python -m gemma_table.table_benchmark
 ```
 
 ### KG/Class 1 benchmark
 
 ```bash
-HF_TOKEN=... .venv-gemma/bin/python -m assistant_platform.gemma_table.school_benchmark
+HF_TOKEN=... .venv-gemma/bin/python -m gemma_table.school_benchmark
 ```
 
 ## Hosting summary

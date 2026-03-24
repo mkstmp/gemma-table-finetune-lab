@@ -63,17 +63,17 @@ This workflow first proves whether the base model already solves the task. It on
 ## Current implementation in this workspace
 
 - Benchmark and evaluator:
-  - `assistant_platform/gemma_table/evaluation.py`
+  - `gemma_table/evaluation.py`
 - Side-by-side service:
-  - `assistant_platform/gemma_table/service.py`
+  - `gemma_table/service.py`
 - UI route:
-  - `assistant_platform/api/routes_gemma_table.py`
+  - `gemma_table/web.py`
 - Dataset generator:
-  - `assistant_platform/gemma_table/training_data.py`
+  - `gemma_table/training_data.py`
 - LoRA training script:
-  - `assistant_platform/gemma_table/train.py`
+  - `gemma_table/train.py`
 - Workflow runner:
-  - `assistant_platform/gemma_table/run_workflow.py`
+  - `gemma_table/run_workflow.py`
 
 ## Why this scales to 3B
 

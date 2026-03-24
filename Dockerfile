@@ -2,7 +2,8 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-COPY assistant_platform /app/assistant_platform
+COPY gemma_table /app/gemma_table
+COPY app.py /app/app.py
 COPY README.md /app/README.md
 
 RUN pip install --no-cache-dir --upgrade pip setuptools wheel
@@ -20,4 +21,4 @@ RUN pip install --no-cache-dir \
 ENV PYTHONPATH=/app
 ENV PORT=8080
 
-CMD ["sh", "-c", "uvicorn assistant_platform.api.app:app --host 0.0.0.0 --port ${PORT}"]
+CMD ["sh", "-c", "uvicorn app:app --host 0.0.0.0 --port ${PORT}"]

@@ -35,8 +35,8 @@ Fine-tune `google/gemma-3-270m-it` so queries like `table of 17` produce the ful
 - Result: setup completed
 - What I tried:
   - Installed `torch`, `accelerate`, `peft`, `datasets`, `transformers`
-  - Added a LoRA training script in `assistant_platform/gemma_table/train.py`
-  - Added dataset generation in `assistant_platform/gemma_table/training_data.py`
+  - Added a LoRA training script in `gemma_table/train.py`
+  - Added dataset generation in `gemma_table/training_data.py`
 - Findings:
   - Imports work in `.venv-gemma`
   - `torch.backends.mps.is_available()` is `False`
