@@ -174,6 +174,8 @@ class ModelRunner:
 
 def build_report(results: dict[str, object], output_path: Path) -> None:
     def preview(text: str, limit: int = 90) -> str:
+        if not text or not text.strip():
+            return "<NO_ANSWER>"
         single_line = text.replace("\n", " ↩ ").replace("|", "/").strip()
         if len(single_line) <= limit:
             return single_line
