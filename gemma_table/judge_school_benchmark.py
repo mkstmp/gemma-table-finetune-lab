@@ -202,13 +202,13 @@ def build_report(results: dict[str, object], output_path: Path) -> None:
             "",
             "## Sample Errors",
             "",
-            "| Query | Expected | Base | FineTuned |",
-            "|---|---|---|---|",
+            "| Query | Expected Answer | Base Answer | Fine-Tuned Answer | Base Result | Fine-Tuned Result |",
+            "|---|---|---|---|---|---|",
         ]
     )
     for row in results["sample_errors"]:
         lines.append(
-            f"| {row['question']} | {', '.join(row['expected'])} | {preview(row['base_output'])} | {preview(row['ft_output'])} |"
+            f"| {row['question']} | {', '.join(row['expected'])} | {preview(row['base_output'])} | {preview(row['ft_output'])} | {row['base_result']} | {row['ft_result']} |"
         )
     output_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
@@ -233,11 +233,49 @@ def build_results(rows: list[dict[str, object]], judge_model: str) -> dict[str, 
         }
         for category, stats in sorted(category_stats.items())
     ]
-    sample_errors = [
-        {"question": r["question"], "expected": r["expected"], "base_output": r["base_output"], "ft_output": r["ft_output"]}
-        for r in rows
-        if (not r["base_correct"]) or (not r["ft_correct"])
-    ][:15]
+    sample_errors: list[dict[str, object]] = []
+    seen_questions: set[str] = set()
+    grouped_errors: dict[str, list[dict[str, object]]] = {}
+    for row in rows:
+        if row["base_correct"] and row["ft_correct"]:
+            continue
+        grouped_errors.setdefault(row["category"], []).append(row)
+
+    for category in sorted(grouped_errors):
+        for row in grouped_errors[category][:2]:
+            sample_errors.append(
+                {
+                    "question": row["question"],
+                    "expected": row["expected"],
+                    "base_output": row["base_output"],
+                    "ft_output": row["ft_output"],
+                    "base_result": "Correct" if row["base_correct"] else "Incorrect",
+                    "ft_result": "Correct" if row["ft_correct"] else "Incorrect",
+                }
+            )
+            seen_questions.add(row["question"])
+
+    if len(sample_errors) < 15:
+        for row in rows:
+            if row["base_correct"] and row["ft_correct"]:
+                continue
+            if row["question"] in seen_questions:
+                continue
+            sample_errors.append(
+                {
+                    "question": row["question"],
+                    "expected": row["expected"],
+                    "base_output": row["base_output"],
+                    "ft_output": row["ft_output"],
+                    "base_result": "Correct" if row["base_correct"] else "Incorrect",
+                    "ft_result": "Correct" if row["ft_correct"] else "Incorrect",
+                }
+            )
+            seen_questions.add(row["question"])
+            if len(sample_errors) >= 15:
+                break
+
+    sample_errors = sample_errors[:15]
     return {
         "overall": {
             "total": total,
